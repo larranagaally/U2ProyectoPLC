@@ -1,0 +1,242 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cajero Automático</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Cajero Automático</h1>
+        <h2>Bienvenido</h2>
+        <div class="saldo">
+            <p>Saldo disponible</p>
+            <h2 id="saldo">$1000.00</h2>
+        </div>
+        <h3>Selecciona una operación</h3>
+        <div id="menu">
+            <button id="btnDepositar">Depositar</button>
+            <button id="btnRetirar">Retirar</button>
+            <button id="btnHistorial">Ver historial</button>
+            <button id="btnSalir" class="btn-salir">Cerrar sesión</button>
+        </div>
+        <div id="formulario" style="display: none;">
+            <h3 id="tituloOperacion"></h3>
+            <input type="number" id="inputCantidad" placeholder="Ingresa la cantidad" min="0.01" step="0.01">
+            <button id="btnAceptar">Aceptar</button>
+            <button id="btnCancelar" class="btn-cancelar">Cancelar</button>
+        </div>
+        <div id="resultado" style="display: none;">
+            <h2 id="iconoResultado"></h2>
+            <h3 id="mensajeResultado"></h3>
+            <button id="btnCerrarResultado">Aceptar</button>
+        </div>
+        <div id="seccionHistorial" style="display: none;">
+            <h3>Historial de operaciones</h3>
+            <ul id="listaHistorial"></ul>
+            <button id="btnCerrarHistorial">Regresar</button>
+        </div>
+    </div>
+    <script>
+        
+        const saldo = document.getElementById("saldo");
+        const menu = document.getElementById("menu");
+        const formulario = document.getElementById("formulario");
+        const tituloOperacion = document.getElementById("tituloOperacion");
+        const inputCantidad = document.getElementById("inputCantidad");
+        const btnDepositar = document.getElementById("btnDepositar");
+        const btnRetirar = document.getElementById("btnRetirar");
+        const btnAceptar = document.getElementById("btnAceptar");
+        const btnCancelar = document.getElementById("btnCancelar");
+        const resultado = document.getElementById("resultado");
+        const iconoResultado = document.getElementById("iconoResultado");
+        const mensajeResultado = document.getElementById("mensajeResultado");
+        const btnCerrarResultado = document.getElementById("btnCerrarResultado");
+        const seccionHistorial = document.getElementById("seccionHistorial");
+        const listaHistorial = document.getElementById("listaHistorial");
+        const btnHistorial = document.getElementById("btnHistorial");
+        const btnCerrarHistorial = document.getElementById("btnCerrarHistorial");
+        const btnSalir = document.getElementById("btnSalir");
+
+
+        if (localStorage.getItem("sesionATM") !== "activa") {
+
+            window.location.href = "login.html";
+
+        }
+
+        let saldoActual = parseFloat(localStorage.getItem("saldoATM"));
+
+        if (isNaN(saldoActual)) {
+
+            saldoActual = 1000;
+
+            localStorage.setItem("saldoATM", saldoActual);
+
+        }
+
+        let historial = JSON.parse(localStorage.getItem("historialATM")) || [];
+
+        let operacionActual = "";
+
+        const actualizarSaldo = () => {
+
+            saldo.textContent = "$" + saldoActual.toFixed(2);
+
+        };
+
+        actualizarSaldo();
+
+        const mostrarFormulario = (tipo) => {
+
+            operacionActual = tipo;
+            menu.style.display = "none";
+            seccionHistorial.style.display = "none";
+            resultado.style.display = "none";
+            formulario.style.display = "block";
+            tituloOperacion.textContent = tipo;
+            inputCantidad.value = "";
+
+        };
+
+        btnDepositar.addEventListener("click", () => {
+
+            mostrarFormulario("Depositar");
+
+        });
+
+        btnRetirar.addEventListener("click", () => {
+
+            mostrarFormulario("Retirar");
+
+        });
+
+       btnCancelar.addEventListener("click", () => {
+
+            formulario.style.display = "none";
+            menu.style.display = "block";
+            inputCantidad.value = "";
+
+        });
+
+        const guardarOperacion = (tipo, cantidad) => {
+
+            historial.push({
+                tipo: tipo,
+                cantidad: cantidad,
+                fecha: new Date().toLocaleString()
+
+            });
+
+            if (historial.length > 5)
+            {
+                historial = historial.slice(-5);
+            }
+
+            localStorage.setItem("historialATM", JSON.stringify(historial));
+
+        };
+
+        const mostrarResultado = (icono, mensaje) => {
+
+            formulario.style.display = "none";
+            menu.style.display = "none";
+            resultado.style.display = "block";
+            iconoResultado.textContent = icono;
+            mensajeResultado.textContent = mensaje;
+
+        };
+
+        btnAceptar.addEventListener("click", () => {
+
+            const cantidad = parseFloat(inputCantidad.value);
+            if (isNaN(cantidad) || cantidad <= 0)
+            {
+                mostrarResultado("❌", "Ingresa una cantidad válida.");
+                return;
+            }
+
+            if (operacionActual === "Depositar")
+            {
+                saldoActual = saldoActual + cantidad;
+                localStorage.setItem("saldoATM", saldoActual);
+                guardarOperacion("Depósito", cantidad);
+                actualizarSaldo();
+                mostrarResultado("✅", "¡Depósito realizado exitosamente!");
+            }
+
+            else if (operacionActual === "Retirar")
+            {
+
+                if (cantidad > saldoActual)
+                {
+                    mostrarResultado("❌", "Saldo insuficiente para realizar el retiro.");
+                }
+                else
+                {
+                    saldoActual = saldoActual - cantidad;
+                    localStorage.setItem("saldoATM", saldoActual);
+                    guardarOperacion("Retiro", cantidad);
+                    actualizarSaldo();
+                    mostrarResultado("✅", "¡Retiro realizado exitosamente!");
+
+                }
+            }
+        });
+
+        btnCerrarResultado.addEventListener("click", () => 
+        {
+            resultado.style.display = "none";
+            menu.style.display = "block";
+
+        });
+
+        const mostrarHistorial = () => {
+
+            listaHistorial.innerHTML = "";
+            if (historial.length === 0)
+            {
+                const liHTML = document.createElement("li");
+                liHTML.textContent = "No hay operaciones registradas.";
+                listaHistorial.append(liHTML);
+
+            }
+
+            historial.forEach((operacion) =>
+            {
+                const liHTML = document.createElement("li");
+                liHTML.textContent = operacion.tipo + " de $" +
+                    operacion.cantidad.toFixed(2) + " - " + operacion.fecha;
+                listaHistorial.append(liHTML);
+
+            });
+
+        };
+
+        btnHistorial.addEventListener("click", () => {
+
+            menu.style.display = "none";
+            formulario.style.display = "none";
+            resultado.style.display = "none";
+            seccionHistorial.style.display = "block";
+            mostrarHistorial();
+
+        });
+
+        btnCerrarHistorial.addEventListener("click", () => {
+            seccionHistorial.style.display = "none";
+            menu.style.display = "block";
+
+        });
+
+        btnSalir.addEventListener("click", () => {
+
+            localStorage.removeItem("sesionATM");
+            window.location.href = "login.html";
+
+        });
+
+    </script>
+</body>
+</html>

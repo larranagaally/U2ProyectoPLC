@@ -1,0 +1,46 @@
+﻿
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cajero Automático - Inicio de Sesión</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Cajero Automático</h1>
+        <h2>Iniciar Sesión</h2>
+        <p>Ingresa tu PIN de cuatro dígitos</p>
+        <input type="password" id="inputPIN" placeholder="Ingresa tu PIN" maxlength="4">
+        <button id="btnEntrar">Ingresar</button>
+        <p id="mensaje"></p>
+    </div>
+    <script>
+
+        const inputPIN = document.getElementById("inputPIN");
+        const btnEntrar = document.getElementById("btnEntrar");
+        const mensaje = document.getElementById("mensaje");
+
+        btnEntrar.addEventListener("click", () => {
+            const pin = inputPIN.value;
+
+            if (pin === "1234") {
+
+                localStorage.setItem("sesionATM", "activa");
+                window.location.href = "principal.html";
+
+            }
+            else
+            {
+                mensaje.textContent = "PIN incorrecto. Intenta nuevamente.";
+                mensaje.style.color = "red";
+                inputPIN.value = "";
+
+            }
+
+        });
+
+    </script>
+</body>
+</html>
